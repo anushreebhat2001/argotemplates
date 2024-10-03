@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: custom-docker-workflow-rp
+  annotations:
+    scenarios.ai.sap.com/description: "Custom Docker Workflow for AI Core"
+    scenarios.ai.sap.com/name: "custom-docker-scenario-rp"
+    executables.ai.sap.com/description: "Workflow to execute a custom Docker image and print parameters"
+    executables.ai.sap.com/name: "custom-docker-exec-rp"
+  labels:
+    scenarios.ai.sap.com/id: b3629233-2854-4aaf-b10f-a0f210fc9383
+    ai.sap.com/version: "1.0.0"
+spec:
+  entrypoint: custom-docker-execution
+  arguments:
+    parameters:
+      - name: dockerImage
+        description: "Name of the custom Docker image"
+        default: "my-custom-image:latest"
+  templates:
+    - name: custom-docker-execution
+      metadata:
+        labels:
+          ai.sap.com/resourcePlan: "Basic"
+      container:
+        image: "anushreebhat01/customimage:latest"
+        imagePullPolicy: Always
+        env:
+          - name: IMAGE_NAME
+            value: "{{workflow.parameters.dockerImage}}"  # Set environment variable for image name
+          - name: RESOURCE_PLAN
+            value: "{{workflow.labels.ai.sap.com/resourcePlan}}"  # Set environment variable for resource plan
+        command: ["/bin/sh", "-c"]
+        args:
+          - >
+            set -e && echo "---Executing Docker Image---" && python /app/main.py && echo "---Execution Complete---"
